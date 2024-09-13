@@ -21,3 +21,14 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+.vscode/
+.idea/
+
+.parcel-cache/
+dist/
+
+
+.npm/
+.yarn/
+eslintcache

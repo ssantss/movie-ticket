@@ -25,9 +25,9 @@ const Header = () => {
         </Toolbar>
       </AppBar>
       <Box sx={{ 
+        display: { xs: 'flex', md: 'none' },
         backgroundColor: 'white', 
         padding: '8px 16px', 
-        display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
       }}>
@@ -39,7 +39,7 @@ const Header = () => {
         padding: '16px',
         pt: '4px',
       }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, textAlign: 'center' }}>
+        <Typography variant="h5" sx={{ fontWeight: 600, textAlign: 'center', pl: { md: '23%' }, }}>
           Mis Compras
         </Typography>
       </Box>

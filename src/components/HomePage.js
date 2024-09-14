@@ -42,6 +42,7 @@ function HomePage() {
   const fetchMovies = async () => {
     const today = format(new Date(), 'yyyy-MM-dd');
     const url = `https://funciones.cinecolombia.com/cineco/get-performances-by-params?cinemaId=702&date=${today}&deviceOS=Linux&browserName=Chrome+128`;
+    console.log(url)
 
     try {
       const response = await axios.get(url);

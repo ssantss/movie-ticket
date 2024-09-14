@@ -32,7 +32,7 @@ const Header = () => {
         justifyContent: 'center',
       }}>
         <Typography variant="subtitle1" sx={{ mr: 1, fontWeight: 'bold' }}>Pereira</Typography>
-        <LocationOnIcon fontSize="small" color="primary" />
+        <LocationOnIcon fontSize="small" sx={{ color: '#1c508d' }} />
       </Box>
       <Box sx={{ 
         backgroundColor: 'white', 

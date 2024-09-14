@@ -14,68 +14,85 @@ const MovieTicket = ({ movieData }) => {
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <ArrowBackIcon sx={{ mr: 1, color: '#1c508d' }} />
       </Box>
-      <Card sx={{ display: 'flex', mb: 2 }}>
+      <Card sx={{ 
+        display: 'flex', 
+        mb: 2, 
+        boxShadow: 'none',
+        flexDirection: 'row',
+        padding: '20px',
+      }}>
         <CardMedia
           component="img"
-          sx={{ width: 151 }}
+          sx={{ 
+            width: '35%', 
+            objectFit: 'cover',
+            borderRadius: '4px',
+            maxHeight: '200px'
+          }}
           image={movieData.posterUrl}
           alt={movieData.title}
         />
-        <CardContent sx={{ flex: '1 0 auto' }}>
-          <Typography component="div" variant="h6">
+        <CardContent sx={{ 
+          flex: '1 0 auto', 
+          p: 1,
+          width: '70%',
+          paddingTop: '0%'
+        }}>
+          <Typography 
+            component="div" 
+            variant="h6" 
+            sx={{ 
+              fontSize: '1.125rem', 
+              fontWeight: 'bold', 
+              mb: 0.5, 
+              wordBreak: 'break-word'
+            }}
+          >
             {movieData.title}
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary" component="div">
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontWeight: '500', color: 'black', fontSize: '0.75rem' }}>
             Título en español: {movieData.spanishTitle}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, color: 'black', fontSize: '0.75rem', fontWeight: '500' }}>
             {movieData.rating} - {movieData.duration} min
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-            <LocationIcon sx={{fontSize: '0.75rem' ,mr: 0.5, color: '#1c508d' }} />
-            <Typography variant="body2">{movieData.theater}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+            <LocationIcon sx={{fontSize: '0.75rem', mr: 0.5, color: '#1c508d' }} />
+            <Typography variant="body2" sx={{ color: 'black', fontSize: '0.75rem', fontWeight: '500' }}>{movieData.theater}</Typography>
           </Box>
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ mb: 0.5 , color: 'black', fontSize: '0.75rem', fontWeight: '500' }}>
             {movieData.date} {movieData.time}
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ mb: 0.5 , color: 'black', fontSize: '0.75rem', fontWeight: '500' }}>
             {movieData.format} - {movieData.language}
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ mb: 0.5 , color: 'black', fontSize: '0.75rem', fontWeight: '500' }}>
             Sala {movieData.hall}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            General {movieData.seats} sillas
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+            General <Box component="span" sx={{ fontWeight: 'bold', color: 'black' }}>{movieData.seats} sillas</Box>
           </Typography>
-          <Chip label={movieData.seatNumber} color="success" size="small" sx={{ mt: 1 }} />
-        </CardContent>
+          <Chip 
+            label={movieData.seatNumber} 
+            size="small" 
+            sx={{ 
+              mt: 0.5,
+              bgcolor: '#00e923',
+              color: 'white', 
+              '&:hover': {
+                bgcolor: '#00c91f', 
+              },
+            }} 
+          />       
+          </CardContent>
       </Card>
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
         <img 
           src="https://boletas.cinecolombia.com/images/qr/YoJoHlhqentBU9RXxC0lB.png" 
           alt="QR Code"
-          style={{ width: '250px', height: '250px' }}
+          style={{ width: '200px', height: '200px' }}
         />
       </Box>
-      <Box sx={{ mt: 2, textAlign: 'center' }}>
-        <img 
-          src="/logo_cineco.svg" 
-          alt="Cine Colombia Logo" 
-          style={{ width: '250px', height: 'auto' }}
-        />
-      </Box>
-      <Grid container justifyContent="space-between" sx={{ mt: 2 }}>
-        <Grid item>
-          <Typography variant="body2" color="text.secondary">
-            Información Legal
-          </Typography>
-        </Grid>
-        <Grid item>
-          <Typography variant="body2" color="text.secondary">
-            Contáctanos PQRS
-          </Typography>
-        </Grid>
-      </Grid>
     </Box>
   );
 };

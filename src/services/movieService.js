@@ -8,9 +8,13 @@ const BASE_URL = "http://www.omdbapi.com/";
 export async function fetchAndUpdateMovies() {
   const today = format(new Date(), 'yyyy-MM-dd');
   const url = `https://funciones.cinecolombia.com/cineco/get-performances-by-params?cinemaId=702&date=${today}&deviceOS=Linux&browserName=Chrome+128`;
+  
 
   try {
     // Verificar si ya tenemos datos actualizados para hoy en Supabase
+    const responsea = await axios.get(url);
+    console.log(responsea)
+
     const { data: existingData, error } = await supabase
       .from('movies')
       .select('id')
@@ -76,42 +80,31 @@ async function updateSupabaseWithMovies(movies, date) {
 
     const movieId = data[0].id;
 
-    // Eliminar showtimes antiguos para esta película y fecha
-    await supabase
+    // Preparar los showtimes para inserción masiva
+    const showtimesToUpsert = movie.showtimes.flatMap(showtime => 
+      showtime.performances.map(performance => ({
+        movie_id: movieId,
+        date: date,
+        datetime: performance.DateTime,
+        format: showtime.attributes.format,
+        language: showtime.attributes.language,
+        hall: performance.Hall,
+        performance_id: performance.PerformanceId
+      }))
+    );
+
+    // Realizar upsert masivo de showtimes
+    const { error: showtimesError } = await supabase
       .from('showtimes')
-      .delete()
-      .eq('movie_id', movieId)
-      .eq('date', date);
+      .upsert(showtimesToUpsert, {
+        onConflict: 'movie_id,date,performance_id',
+        ignoreDuplicates: false
+      });
 
-    // Crear un conjunto para almacenar PerformanceIds únicos
-    const uniquePerformances = new Set();
-
-    // Insertar nuevos showtimes
-    for (const showtime of movie.showtimes) {
-      for (const performance of showtime.performances) {
-        // Verificar si ya hemos procesado este performance
-        if (uniquePerformances.has(performance.PerformanceId)) {
-          continue;
-        }
-        
-        uniquePerformances.add(performance.PerformanceId);
-
-        const { error: insertError } = await supabase
-          .from('showtimes')
-          .insert({
-            movie_id: movieId,
-            date: date,
-            datetime: performance.DateTime,
-            format: showtime.attributes.format,
-            language: showtime.attributes.language,
-            hall: performance.Hall,
-            performance_id: performance.PerformanceId // Añadimos este campo para referencia futura
-          });
-
-        if (insertError) {
-          console.error(`Error insertando showtime para ${movie.name}:`, insertError);
-        }
-      }
+    if (showtimesError) {
+      console.error('Error upserting showtimes:', showtimesError);
+    } else {
+      console.log(`Showtimes updated successfully for movie: ${movie.name}`);
     }
   }
 }

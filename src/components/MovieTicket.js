@@ -1,6 +1,9 @@
 import React from 'react';
 import { Box, Typography, Card, CardMedia, CardContent, Chip, Grid, SvgIcon } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from 'react-router-dom';
+
+
 
 const LocationIcon = (props) => (
   <SvgIcon {...props} viewBox="0 0 384 512">
@@ -9,10 +12,17 @@ const LocationIcon = (props) => (
 );
 
 const MovieTicket = ({ movieData }) => {
+  const navigate = useNavigate();
+
+  const handleBackClick = () => {
+    navigate('/');
+  };
+
+
   return (
-    <Box sx={{ padding: 2, backgroundColor: 'white' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <ArrowBackIcon sx={{ mr: 1, color: '#1c508d' }} />
+    <Box sx={{ padding: 2, backgroundColor: 'white', maxWidth: '700px', width:'100%', margin: '0 auto'  }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, cursor: 'pointer' }}>
+        <ArrowBackIcon sx={{ mr: 1, color: '#1c508d' }} onClick={handleBackClick} />
       </Box>
       <Card sx={{ 
         display: 'flex', 
@@ -24,10 +34,11 @@ const MovieTicket = ({ movieData }) => {
         <CardMedia
           component="img"
           sx={{ 
-            width: '35%', 
-            objectFit: 'cover',
+            width: { xs: '35%', md: '100%' }, 
+            objectFit: 'contain',
             borderRadius: '4px',
-            maxHeight: '200px'
+            maxHeight: { xs: 'auto', md: '450px' },
+            alignSelf: 'flex-start'
           }}
           image={movieData.posterUrl}
           alt={movieData.title}

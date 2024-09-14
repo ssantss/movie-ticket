@@ -27,7 +27,7 @@ export async function fetchAndUpdateMovies() {
       const response = await axios.get(url);
       console.log('API Response:', response.data);
       const moviesWithPosters = await Promise.all(response.data.showtimes.map(fetchPoster));
-      console.log('Movies with posters:', moviesWithPosters);
+      console.log('Movies with posters (movies service):', moviesWithPosters);
 
       // Actualizar Supabase con los nuevos datos
       await updateSupabaseWithMovies(moviesWithPosters, today);
@@ -35,6 +35,7 @@ export async function fetchAndUpdateMovies() {
       return moviesWithPosters;
     } else {
       // Si ya hay datos para hoy, obtenerlos de Supabase
+      console.log("YA EXISTEN DATOSSS")
       return await getMoviesFromSupabase(today);
     }
   } catch (err) {
@@ -82,10 +83,20 @@ async function updateSupabaseWithMovies(movies, date) {
       .eq('movie_id', movieId)
       .eq('date', date);
 
+    // Crear un conjunto para almacenar PerformanceIds únicos
+    const uniquePerformances = new Set();
+
     // Insertar nuevos showtimes
     for (const showtime of movie.showtimes) {
       for (const performance of showtime.performances) {
-        await supabase
+        // Verificar si ya hemos procesado este performance
+        if (uniquePerformances.has(performance.PerformanceId)) {
+          continue;
+        }
+        
+        uniquePerformances.add(performance.PerformanceId);
+
+        const { error: insertError } = await supabase
           .from('showtimes')
           .insert({
             movie_id: movieId,
@@ -93,8 +104,13 @@ async function updateSupabaseWithMovies(movies, date) {
             datetime: performance.DateTime,
             format: showtime.attributes.format,
             language: showtime.attributes.language,
-            hall: performance.Hall
+            hall: performance.Hall,
+            performance_id: performance.PerformanceId // Añadimos este campo para referencia futura
           });
+
+        if (insertError) {
+          console.error(`Error insertando showtime para ${movie.name}:`, insertError);
+        }
       }
     }
   }

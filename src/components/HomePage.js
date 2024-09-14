@@ -4,6 +4,7 @@ import { Container, Typography, Box, CircularProgress, Grid, Card, CardMedia, Ca
 import { format, parseISO, addHours, isWithinInterval } from 'date-fns';
 import { keyframes } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
+import { fetchAndUpdateMovies } from '../services/movieService';
 const API_KEY = "c4caa58d";
 const BASE_URL = "http://www.omdbapi.com/";
 
@@ -29,6 +30,9 @@ function HomePage() {
 
   useEffect(() => {
     fetchMovies();
+
+    fetchMovies2();
+    
   
     // Actualizar la hora cada segundo
     const timer = setInterval(() => {
@@ -39,6 +43,20 @@ function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
+
+  const fetchMovies2 = async () => {
+    try {
+      console.log('Iniciando fetchAndUpdateMovies');
+      const result = await fetchAndUpdateMovies();
+      console.log('Resultado de fetchAndUpdateMovies:', result);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error en fetchAndUpdateMovies:', err);
+      setError('Error al cargar las películas. Por favor, intenta de nuevo más tarde.');
+      setLoading(false);
+    }
+  };
+
   const fetchMovies = async () => {
     const today = format(new Date(), 'yyyy-MM-dd');
     const url = `https://funciones.cinecolombia.com/cineco/get-performances-by-params?cinemaId=702&date=${today}&deviceOS=Linux&browserName=Chrome+128`;
@@ -48,7 +66,7 @@ function HomePage() {
       const response = await axios.get(url);
       console.log('API Response:', response.data);
       const moviesWithPosters = await Promise.all(response.data.showtimes.map(fetchPoster));
-      console.log('Movies with posters:', moviesWithPosters);
+      console.log('Movies with posters (1):', moviesWithPosters);
       setMovies(moviesWithPosters);
       setLoading(false);
     } catch (err) {

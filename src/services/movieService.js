@@ -62,10 +62,11 @@ export async function fetchAndUpdateMovies() {
 async function fetchPoster(movie) {
   try {
     const response = await axios.get(`${BASE_URL}?apikey=${API_KEY}&t=${encodeURIComponent(movie.name)}`);
+    console.log(`Poster fetched successfully for ${movie.name}`);
     return { ...movie, poster: response.data.Poster };
   } catch (err) {
-    console.error('Error fetching poster:', err);
-    return { ...movie, poster: 'https://via.placeholder.com/300x450?text=No+Poster' };
+    console.error(`Error fetching poster for ${movie.name}:`, err);
+    throw err; // Propaga el error para que pueda ser manejado en fetchAndUpdateMovies
   }
 }
 

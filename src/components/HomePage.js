@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, CircularProgress, Grid, Card, CardMedia, CardContent, Chip } from '@mui/material';
-import { format, parseISO, addHours, isAfter, isBefore } from 'date-fns';
+import { Container, Typography, Box, CircularProgress, Grid, Card, CardMedia, CardContent, Chip, LinearProgress } from '@mui/material';
+import { format, parseISO, addMinutes, addHours , isAfter, isBefore, differenceInMinutes, formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { keyframes } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import { fetchAndUpdateMovies } from '../services/movieService';
-
-
+import { PlayArrow, Stop, Schedule } from '@mui/icons-material';
 
 const pulseAnimation = keyframes`
   0% {
@@ -102,6 +102,44 @@ function HomePage() {
     navigate('/ticket', { state: { movieData } });
   };
 
+  const getMovieProgress = (showtime, duration) => {
+    const now = new Date();
+    const startTime = parseISO(showtime.datetime);
+    const endTime = addMinutes(startTime, duration);
+
+    if (isBefore(now, startTime)) {
+      return (
+        <Box display="flex" alignItems="center">
+          <Schedule color="action" sx={{ mr: 1 }} />
+          <Typography variant="body2">Comienza {formatDistanceToNow(startTime, { addSuffix: true, locale: es })}</Typography>
+        </Box>
+      );
+    } else if (isAfter(now, endTime)) {
+      return (
+        <Box display="flex" alignItems="center">
+          <Stop color="error" sx={{ mr: 1 }} />
+          <Typography variant="body2">Finalizada</Typography>
+        </Box>
+      );
+    } else {
+      const elapsedMinutes = differenceInMinutes(now, startTime);
+      const progress = (elapsedMinutes / duration) * 100;
+      return (
+        <Box>
+          <Box display="flex" alignItems="center" mb={1}>
+            <PlayArrow color="primary" sx={{ mr: 1 }} />
+            <Typography variant="body2">En progreso</Typography>
+          </Box>
+          <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 5 }} />
+          <Box display="flex" justifyContent="space-between" mt={0.5}>
+            <Typography variant="caption">{elapsedMinutes} min</Typography>
+            <Typography variant="caption">{duration - elapsedMinutes} min restantes</Typography>
+          </Box>
+        </Box>
+      );
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
@@ -119,7 +157,7 @@ function HomePage() {
   }
 
   return (
-    <Container maxWidth="lg">
+<Container maxWidth="lg">
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mt: 4 }}>
         Cartelera Cine Colombia - {formatCurrentTime(currentTime)}
       </Typography>
@@ -144,6 +182,9 @@ function HomePage() {
                 <Typography variant="body2" color="text.secondary">
                   Duración: {movie.duration} minutos
                 </Typography>
+                <Box mt={2}>
+                  {getMovieProgress(movie.showtimes[0], parseInt(movie.duration))}
+                </Box>
                 <Box mt={2}>
                   <Typography variant="subtitle2">Horarios:</Typography>
                   <Box display="flex" flexWrap="wrap" gap={1} mt={1}>

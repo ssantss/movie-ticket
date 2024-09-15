@@ -7,6 +7,8 @@ import { supabase } from '../utils/supabaseClient';
 const API_KEY = process.env.REACT_APP_API_KEY_OMDB
 const BASE_URL = process.env.REACT_APP_BASE_URL_OMDB
 
+console.log(API_KEY, BASE_URL)
+
 function convertToAPIFormat(supabaseDateTime) {
   // Parsea la fecha de Supabase
   const date = parseISO(supabaseDateTime);

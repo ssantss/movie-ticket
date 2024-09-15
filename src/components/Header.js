@@ -2,8 +2,16 @@ import React from 'react';
 import { AppBar, Toolbar, IconButton, Box, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { useNavigate } from 'react-router-dom';
+
 
 const Header = () => {
+
+  const navigate = useNavigate();
+
+  const handleLogoClick = () => {
+    navigate('/');
+  };
   return (
     <>
       <AppBar position="static" sx={{ backgroundColor: 'black' }}>
@@ -17,7 +25,7 @@ const Header = () => {
             <MenuIcon />
           </IconButton>
           <Box sx={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
-            <img src="/logo_cineco.svg" alt="Cine Colombia Logo" style={{ height: '30px' }} />
+            <img src="/logo_cineco.svg" alt="Cine Colombia Logo" style={{ height: '30px', cursor: 'pointer' }} onClick={handleLogoClick} />
           </Box>
           <Box sx={{ backgroundColor: '#1976d2', borderRadius: '20px', padding: '4px 12px' }}>
             <Typography variant="button" sx={{ color: 'white' }}>sj</Typography>

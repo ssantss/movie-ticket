@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { format, parseISO, addHours,addDays,  isWithinInterval } from 'date-fns';
+import { format, parseISO} from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { supabase } from '../utils/supabaseClient';
 
@@ -21,7 +21,6 @@ function convertToAPIFormat(supabaseDateTime) {
 
 export async function fetchAndUpdateMovies() {
   const today = format(new Date(), 'yyyy-MM-dd');
-  // const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
 
   const url = `https://funciones.cinecolombia.com/cineco/get-performances-by-params?cinemaId=702&date=${today}&deviceOS=Linux&browserName=Chrome+128`;
 

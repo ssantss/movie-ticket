@@ -4,8 +4,8 @@ import { toZonedTime } from 'date-fns-tz';
 import { supabase } from '../utils/supabaseClient';
 
 
-const API_KEY = "c4caa58d";
-const BASE_URL = "http://www.omdbapi.com/";
+const API_KEY = process.env.REACT_APP_API_KEY_OMDB
+const BASE_URL = process.env.REACT_APP_BASE_URL_OMDB
 
 function convertToAPIFormat(supabaseDateTime) {
   // Parsea la fecha de Supabase

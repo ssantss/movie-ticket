@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, CircularProgress, Grid, Card, CardMedia, CardContent, Chip } from '@mui/material';
-import { format, parseISO, addHours, isWithinInterval, isAfter, isBefore } from 'date-fns';
+import { format, parseISO, addHours, isAfter, isBefore } from 'date-fns';
 import { keyframes } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import { fetchAndUpdateMovies } from '../services/movieService';

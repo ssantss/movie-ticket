@@ -1,20 +1,31 @@
 import axios from 'axios';
 import { format, parseISO, addHours, isWithinInterval } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 import { supabase } from '../utils/supabaseClient';
+
 
 const API_KEY = "c4caa58d";
 const BASE_URL = "http://www.omdbapi.com/";
 
+function convertToAPIFormat(supabaseDateTime) {
+  // Parsea la fecha de Supabase
+  const date = parseISO(supabaseDateTime);
+  
+  // Convierte a la zona horaria de Colombia (UTC-5)
+  const colombiaTimeZone = 'America/Bogota';
+  const dateInColombia = toZonedTime(date, colombiaTimeZone);
+  
+  // Formatea la fecha al formato de la API
+  return format(dateInColombia, "yyyy-MM-dd'T'HH:mm:ssxxx");
+}
+
 export async function fetchAndUpdateMovies() {
   const today = format(new Date(), 'yyyy-MM-dd');
   const url = `https://funciones.cinecolombia.com/cineco/get-performances-by-params?cinemaId=702&date=${today}&deviceOS=Linux&browserName=Chrome+128`;
-  
+  const response = await axios.get(url);
+console.log(response.data)
 
   try {
-    // Verificar si ya tenemos datos actualizados para hoy en Supabase
-    const responsea = await axios.get(url);
-    console.log(responsea)
-
     const { data: existingData, error } = await supabase
       .from('movies')
       .select('id')
@@ -40,7 +51,9 @@ export async function fetchAndUpdateMovies() {
     } else {
       // Si ya hay datos para hoy, obtenerlos de Supabase
       console.log("YA EXISTEN DATOSSS")
-      return await getMoviesFromSupabase(today);
+
+      const sant=  await getMoviesFromSupabase(today);
+      return sant
     }
   } catch (err) {
     console.error('Error fetching movies:', err);
@@ -85,7 +98,7 @@ async function updateSupabaseWithMovies(movies, date) {
       showtime.performances.map(performance => ({
         movie_id: movieId,
         date: date,
-        datetime: performance.DateTime,
+        datetime: performance.DateTime, // Ya incluye la zona horaria correcta
         format: showtime.attributes.format,
         language: showtime.attributes.language,
         hall: performance.Hall,
@@ -124,42 +137,19 @@ async function getMoviesFromSupabase(date) {
     return null;
   }
 
-  return data;
+  // Convertir las fechas de las funciones al formato de la API
+  const formattedData = data.map(movie => ({
+    ...movie,
+    showtimes: movie.showtimes.map(showtime => ({
+      ...showtime,
+      datetime: convertToAPIFormat(showtime.datetime)
+    }))
+  }));
+
+  return formattedData;
 }
 
 export function formatShowtime(dateTimeString) {
   return format(parseISO(dateTimeString), 'h:mm a');
 }
 
-export function isShowtimeWithinNextThreeHours(dateTimeString) {
-  const showtimeDate = parseISO(dateTimeString);
-  const now = new Date();
-  const threeHoursLater = addHours(showtimeDate, 3);
-  return isWithinInterval(now, { start: showtimeDate, end: threeHoursLater });
-}
-
-export function sortMovies(movies) {
-  return movies.sort((a, b) => {
-    const aHasUpcoming = a.showtimes.some(showtime => 
-      showtime.performances.some(performance => 
-        isShowtimeWithinNextThreeHours(performance.DateTime)
-      )
-    );
-    const bHasUpcoming = b.showtimes.some(showtime => 
-      showtime.performances.some(performance => 
-        isShowtimeWithinNextThreeHours(performance.DateTime)
-      )
-    );
-    
-    if (aHasUpcoming && !bHasUpcoming) return -1;
-    if (!aHasUpcoming && bHasUpcoming) return 1;
-    return 0;
-  });
-}
-
-export function seatNumberRandom() {
-  const letters = 'ABCDEFGHIJKL';
-  const randomLetter = letters[Math.floor(Math.random() * letters.length)];
-  const randomNumber = Math.floor(Math.random() * 10) + 1;
-  return `${randomLetter}${randomNumber}`;
-}

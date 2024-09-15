@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Container, Typography, Box, CircularProgress, Grid, Card, CardMedia, CardContent, Chip } from '@mui/material';
-import { format, parseISO, addHours, isWithinInterval } from 'date-fns';
+import { format, parseISO, addHours, isWithinInterval, isAfter, isBefore } from 'date-fns';
 import { keyframes } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import { fetchAndUpdateMovies } from '../services/movieService';
-const API_KEY = "c4caa58d";
-const BASE_URL = "http://www.omdbapi.com/";
+
+
 
 const pulseAnimation = keyframes`
   0% {
@@ -30,59 +29,25 @@ function HomePage() {
 
   useEffect(() => {
     fetchMovies();
-
-    fetchMovies2();
-    
   
-    // Actualizar la hora cada segundo
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
   
-    // Limpiar el intervalo cuando el componente se desmonte
     return () => clearInterval(timer);
   }, []);
 
-
-  const fetchMovies2 = async () => {
+  const fetchMovies = async () => {
     try {
       console.log('Iniciando fetchAndUpdateMovies');
       const result = await fetchAndUpdateMovies();
       console.log('Resultado de fetchAndUpdateMovies:', result);
+      setMovies(result);
       setLoading(false);
     } catch (err) {
       console.error('Error en fetchAndUpdateMovies:', err);
       setError('Error al cargar las películas. Por favor, intenta de nuevo más tarde.');
       setLoading(false);
-    }
-  };
-
-  const fetchMovies = async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const url = `https://funciones.cinecolombia.com/cineco/get-performances-by-params?cinemaId=702&date=${today}&deviceOS=Linux&browserName=Chrome+128`;
-    console.log(url)
-
-    try {
-      const response = await axios.get(url);
-      console.log('API Response:', response.data);
-      const moviesWithPosters = await Promise.all(response.data.showtimes.map(fetchPoster));
-      console.log('Movies with posters (1):', moviesWithPosters);
-      setMovies(moviesWithPosters);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching movies:', err);
-      setError('Error al cargar las películas. Por favor, intenta de nuevo más tarde.');
-      setLoading(false);
-    }
-  };
-
-  const fetchPoster = async (movie) => {
-    try {
-      const response = await axios.get(`${BASE_URL}?apikey=${API_KEY}&t=${encodeURIComponent(movie.name)}`);
-      return { ...movie, poster: response.data.Poster };
-    } catch (err) {
-      console.error('Error fetching poster:', err);
-      return { ...movie, poster: 'https://via.placeholder.com/300x450?text=No+Poster' };
     }
   };
 
@@ -94,28 +59,20 @@ function HomePage() {
     return format(date, ' h:mm:ss a');
   };
 
-  const isShowtimeWithinNextThreeHours = (dateTimeString) => {
+  const isShowtimePulsating = (dateTimeString) => {
     const showtimeDate = parseISO(dateTimeString);
     const now = new Date();
     const threeHoursLater = addHours(showtimeDate, 3);
-    return isWithinInterval(now, { start: showtimeDate, end: threeHoursLater });
+    return isAfter(now, showtimeDate) && isBefore(now, threeHoursLater);
   };
 
   const sortMovies = (movies) => {
     return movies.sort((a, b) => {
-      const aHasUpcoming = a.showtimes.some(showtime => 
-        showtime.performances.some(performance => 
-          isShowtimeWithinNextThreeHours(performance.DateTime)
-        )
-      );
-      const bHasUpcoming = b.showtimes.some(showtime => 
-        showtime.performances.some(performance => 
-          isShowtimeWithinNextThreeHours(performance.DateTime)
-        )
-      );
+      const aHasPulsating = a.showtimes.some(showtime => isShowtimePulsating(showtime.datetime));
+      const bHasPulsating = b.showtimes.some(showtime => isShowtimePulsating(showtime.datetime));
       
-      if (aHasUpcoming && !bHasUpcoming) return -1;
-      if (!aHasUpcoming && bHasUpcoming) return 1;
+      if (aHasPulsating && !bHasPulsating) return -1;
+      if (!aHasPulsating && bHasPulsating) return 1;
       return 0;
     });
   };
@@ -127,18 +84,18 @@ function HomePage() {
     return `${randomLetter}${randomNumber}`;
   };
 
-  const handleChipClick = (movie, performance) => {
+  const handleChipClick = (movie, showtime) => {
     const movieData = {
       title: movie.name,
       spanishTitle: movie.machine_name,
       rating: movie.classification,
       duration: parseInt(movie.duration),
       theater: "Victoria", // Asumiendo que es siempre Victoria, ajusta si es necesario
-      date: format(parseISO(performance.DateTime), 'dd MMMM yyyy'),
-      time: format(parseISO(performance.DateTime), 'h:mm a'),
-      format: performance.attributes.format,
-      language: performance.attributes.language,
-      hall: performance.Hall,
+      date: format(parseISO(showtime.datetime), 'dd MMMM yyyy'),
+      time: format(parseISO(showtime.datetime), 'h:mm a'),
+      format: showtime.format,
+      language: showtime.language,
+      hall: showtime.hall,
       seats: 1, // Asumiendo 1 asiento, ajusta según necesidades
       seatNumber: seatNumberRandom(),
       posterUrl: movie.poster
@@ -177,7 +134,7 @@ function HomePage() {
                 height="450"
                 image={movie.poster}
                 alt={movie.name}    
-                sx={{ objectFit: 'contain', width: '100%', height: '100%',  }}
+                sx={{ objectFit: 'contain', width: '100%', height: '100%' }}
               />
               <CardContent>
                 <Typography variant="h6" component="div">
@@ -193,27 +150,19 @@ function HomePage() {
                   <Typography variant="subtitle2">Horarios:</Typography>
                   {movie.showtimes.map((showtime, index) => (
                     <Box key={index} mt={1}>
-                      <Typography variant="body2">
-                        {showtime.attributes.format} - {showtime.attributes.language}
-                      </Typography>
                       <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                        {showtime.performances.map((performance, perfIndex) => {
-                          const isWithinThreeHours = isShowtimeWithinNextThreeHours(performance.DateTime);
-                          return (
-                            <Chip 
-                              key={perfIndex} 
-                              label={formatShowtime(performance.DateTime)} 
-                              size="small"
-                              color={isWithinThreeHours ? "error" : "primary"}
-                              variant="outlined"
-                              onClick={() => handleChipClick(movie, {...performance, attributes: showtime.attributes})}
-                              sx={isWithinThreeHours ? {
-                                animation: `${pulseAnimation} 2s infinite`,
-                                fontWeight: 'bold'
-                              } : {}}
-                            />
-                          );
-                        })}
+                        <Chip 
+                          key={showtime.id}
+                          label={formatShowtime(showtime.datetime)} 
+                          size="small"
+                          color={isShowtimePulsating(showtime.datetime) ? "error" : "primary"}
+                          variant="outlined"
+                          onClick={() => handleChipClick(movie, showtime)}
+                          sx={isShowtimePulsating(showtime.datetime) ? {
+                            animation: `${pulseAnimation} 1s infinite`,
+                            fontWeight: 'bold'
+                          } : {}}
+                        />
                       </Box>
                     </Box>
                   ))}

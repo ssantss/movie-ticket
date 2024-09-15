@@ -7,7 +7,6 @@ import { supabase } from '../utils/supabaseClient';
 const API_KEY = process.env.REACT_APP_API_KEY_OMDB
 const BASE_URL = process.env.REACT_APP_BASE_URL_OMDB
 
-console.log(API_KEY, BASE_URL)
 
 function convertToAPIFormat(supabaseDateTime) {
   // Parsea la fecha de Supabase
@@ -39,19 +38,13 @@ export async function fetchAndUpdateMovies() {
     }
 
     if (existingData.length === 0) {
-      // Si no hay datos para hoy, obtenerlos de la API y actualizar Supabase
       const response = await axios.get(url);
-      console.log('API Response:', response.data);
       const moviesWithPosters = await Promise.all(response.data.showtimes.map(fetchPoster));
-      console.log('Movies with posters (movies service):', moviesWithPosters);
 
-      // Actualizar Supabase con los nuevos datos
       await updateSupabaseWithMovies(moviesWithPosters, today);
 
       return await getMoviesFromSupabase(today);
     } else {
-      // Si ya hay datos para hoy, obtenerlos de Supabase
-      console.log("YA EXISTEN DATOSSS")
 
       return await getMoviesFromSupabase(today);
     }
@@ -64,17 +57,15 @@ export async function fetchAndUpdateMovies() {
 async function fetchPoster(movie) {
   try {
     const response = await axios.get(`${BASE_URL}?apikey=${API_KEY}&t=${encodeURIComponent(movie.name)}`);
-    console.log(`Poster fetched successfully for ${movie.name}`);
     return { ...movie, poster: response.data.Poster };
   } catch (err) {
     console.error(`Error fetching poster for ${movie.name}:`, err);
-    throw err; // Propaga el error para que pueda ser manejado en fetchAndUpdateMovies
+    throw err; 
   }
 }
 
 async function updateSupabaseWithMovies(movies, date) {
   for (const movie of movies) {
-    // Insertar o actualizar la película
     const { data, error } = await supabase
       .from('movies')
       .upsert({
@@ -94,12 +85,11 @@ async function updateSupabaseWithMovies(movies, date) {
 
     const movieId = data[0].id;
 
-    // Preparar los showtimes para inserción masiva
     const showtimesToUpsert = movie.showtimes.flatMap(showtime => 
       showtime.performances.map(performance => ({
         movie_id: movieId,
         date: date,
-        datetime: performance.DateTime, // Ya incluye la zona horaria correcta
+        datetime: performance.DateTime, 
         format: showtime.attributes.format,
         language: showtime.attributes.language,
         hall: performance.Hall,
@@ -107,7 +97,6 @@ async function updateSupabaseWithMovies(movies, date) {
       }))
     );
 
-    // Realizar upsert masivo de showtimes
     const { error: showtimesError } = await supabase
       .from('showtimes')
       .upsert(showtimesToUpsert, {
@@ -117,8 +106,6 @@ async function updateSupabaseWithMovies(movies, date) {
 
     if (showtimesError) {
       console.error('Error upserting showtimes:', showtimesError);
-    } else {
-      console.log(`Showtimes updated successfully for movie: ${movie.name}`);
     }
   }
 }
@@ -138,7 +125,6 @@ async function getMoviesFromSupabase(date) {
     return null;
   }
 
-  // Convertir las fechas de las funciones al formato de la API
   const formattedData = data.map(movie => ({
     ...movie,
     showtimes: movie.showtimes.map(showtime => ({

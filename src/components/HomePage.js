@@ -39,13 +39,11 @@ function HomePage() {
 
   const fetchMovies = async () => {
     try {
-      console.log('Iniciando fetchAndUpdateMovies');
+
       const result = await fetchAndUpdateMovies();
-      console.log('Resultado de fetchAndUpdateMovies:', result);
       setMovies(result);
       setLoading(false);
     } catch (err) {
-      console.error('Error en fetchAndUpdateMovies:', err);
       setError('Error al cargar las películas. Por favor, intenta de nuevo más tarde.');
       setLoading(false);
     }
@@ -90,13 +88,13 @@ function HomePage() {
       spanishTitle: movie.machine_name,
       rating: movie.classification,
       duration: parseInt(movie.duration),
-      theater: "Victoria", // Asumiendo que es siempre Victoria, ajusta si es necesario
+      theater: "Victoria", 
       date: format(parseISO(showtime.datetime), 'dd MMMM yyyy'),
       time: format(parseISO(showtime.datetime), 'h:mm a'),
       format: showtime.format,
       language: showtime.language,
       hall: showtime.hall,
-      seats: 1, // Asumiendo 1 asiento, ajusta según necesidades
+      seats: 1, 
       seatNumber: seatNumberRandom(),
       posterUrl: movie.poster
     };

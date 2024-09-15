@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { format, parseISO, addHours, isWithinInterval } from 'date-fns';
+import { format, parseISO, addHours,addDays,  isWithinInterval } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { supabase } from '../utils/supabaseClient';
 
@@ -21,9 +21,9 @@ function convertToAPIFormat(supabaseDateTime) {
 
 export async function fetchAndUpdateMovies() {
   const today = format(new Date(), 'yyyy-MM-dd');
+  // const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+
   const url = `https://funciones.cinecolombia.com/cineco/get-performances-by-params?cinemaId=702&date=${today}&deviceOS=Linux&browserName=Chrome+128`;
-  const response = await axios.get(url);
-console.log(response.data)
 
   try {
     const { data: existingData, error } = await supabase
@@ -47,13 +47,12 @@ console.log(response.data)
       // Actualizar Supabase con los nuevos datos
       await updateSupabaseWithMovies(moviesWithPosters, today);
 
-      return moviesWithPosters;
+      return await getMoviesFromSupabase(today);
     } else {
       // Si ya hay datos para hoy, obtenerlos de Supabase
       console.log("YA EXISTEN DATOSSS")
 
-      const sant=  await getMoviesFromSupabase(today);
-      return sant
+      return await getMoviesFromSupabase(today);
     }
   } catch (err) {
     console.error('Error fetching movies:', err);

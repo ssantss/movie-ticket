@@ -148,24 +148,22 @@ function HomePage() {
                 </Typography>
                 <Box mt={2}>
                   <Typography variant="subtitle2">Horarios:</Typography>
-                  {movie.showtimes.map((showtime, index) => (
-                    <Box key={index} mt={1}>
-                      <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                        <Chip 
-                          key={showtime.id}
-                          label={formatShowtime(showtime.datetime)} 
-                          size="small"
-                          color={isShowtimePulsating(showtime.datetime) ? "error" : "primary"}
-                          variant="outlined"
-                          onClick={() => handleChipClick(movie, showtime)}
-                          sx={isShowtimePulsating(showtime.datetime) ? {
-                            animation: `${pulseAnimation} 1s infinite`,
-                            fontWeight: 'bold'
-                          } : {}}
-                        />
-                      </Box>
-                    </Box>
-                  ))}
+                  <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
+                    {movie.showtimes.map((showtime) => (
+                      <Chip 
+                        key={showtime.id}
+                        label={formatShowtime(showtime.datetime)} 
+                        size="small"
+                        color={isShowtimePulsating(showtime.datetime) ? "error" : "primary"}
+                        variant="outlined"
+                        onClick={() => handleChipClick(movie, showtime)}
+                        sx={isShowtimePulsating(showtime.datetime) ? {
+                          animation: `${pulseAnimation} 1s infinite`,
+                          fontWeight: 'bold'
+                        } : {}}
+                      />
+                    ))}
+                  </Box>
                 </Box>
               </CardContent>
             </Card>
